@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IEEE RRCE – Department Display</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* 1rem = 1% of a 16:9 screen width, so it scales to any big display */
+:root{--bg:#040817;--surf:rgba(11,20,49,.72);--line:#1d2f66;--tx:#eaf0ff;--mut:#97a6d6;--a:#00b4ff;--b:#6b5cff;--c:#00e5a8}
+*{box-sizing:border-box;margin:0}
+html{font-size:min(1vw,1.7778vh);background:var(--bg)}
+body{width:100vw;height:100vh;overflow:hidden;color:var(--tx);font-family:'Space Grotesk',system-ui,sans-serif;font-size:1.5rem;line-height:1.45}
+body.idle{cursor:none}.mono{font-family:'JetBrains Mono',ui-monospace,monospace}
+#bg{position:fixed;inset:0;width:100%;height:100%}
+.vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 18%,rgba(0,180,255,.16),transparent 45%),radial-gradient(circle at 88% 86%,rgba(107,92,255,.2),transparent 50%),radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.55))}
+header{position:fixed;top:0;left:0;right:0;height:7rem;padding:0 4rem;display:flex;justify-content:space-between;align-items:center;z-index:5}
+.brand{display:flex;gap:1.2rem;align-items:center}.brand b{font-size:1.7rem;display:block}.brand small{color:var(--mut);font-size:1.1rem}
+.hex{width:5rem;height:5rem;display:grid;place-items:center;font-weight:700;font-size:1.35rem;color:#fff;background:linear-gradient(135deg,var(--a),var(--b));clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{50%{filter:drop-shadow(0 0 1.2rem var(--a))}}
+.clock{text-align:right}.clock b{font-size:3rem;display:block;color:var(--a)}.clock small{color:var(--mut);font-size:1.1rem}
+
+#stage{position:fixed;inset:0}
+.scene{position:absolute;inset:0;padding:8.5rem 5rem 9rem;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:scale(1.05);transition:opacity 1s,transform 1.4s;pointer-events:none}
+.scene.on{opacity:1;transform:none}
+.a{opacity:0;transform:translateY(2.4rem);transition:opacity .8s calc(var(--i)*.13s + .3s),transform .8s calc(var(--i)*.13s + .3s)}
+.scene.on .a{opacity:1;transform:none}
+.tag{color:var(--c);font-size:1.3rem;letter-spacing:.3rem;text-transform:uppercase;margin-bottom:.4rem}
+h2{font-size:4.6rem;line-height:1.05;margin-bottom:2rem}
+h1{font-size:8.2rem;line-height:1.02;margin:.6rem 0 1.4rem}
+h1 span,h2 span{background:linear-gradient(100deg,var(--a),var(--b) 60%,var(--c));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:2.1rem;color:var(--mut);max-width:62rem}
+.chips{display:flex;gap:1rem;margin-top:2.4rem}.chips span{border:1px solid var(--a);border-radius:99px;padding:.5rem 1.6rem;font-size:1.4rem;color:var(--a)}
+.grid{display:grid;gap:1.4rem}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:1.4rem;padding:1.8rem;backdrop-filter:blur(8px);transition:.6s}
+.card.hl{border-color:var(--c);box-shadow:0 0 3rem -.6rem var(--c);transform:translateY(-.6rem) scale(1.03);background:rgba(0,229,168,.09)}
+.card .ic{font-size:3.4rem}.card h3{font-size:2rem;margin:.4rem 0}.card p{color:var(--mut);font-size:1.3rem}
+.card .big{font-size:4.2rem;font-weight:700;color:var(--a);line-height:1.1}
+.card .more{max-height:0;overflow:hidden;opacity:0;transition:.6s;color:var(--c);font-size:1.25rem}.card.hl .more{max-height:12rem;opacity:1;margin-top:.6rem}
+.pill{display:inline-block;font-size:1rem;border:1px solid var(--c);color:var(--c);border-radius:99px;padding:.1rem .8rem;margin-right:.5rem}.pill.alt{border-color:var(--b);color:#a99dff}
+.yr{font-size:2.6rem;color:var(--c);font-weight:700}
+.two{display:grid;grid-template-columns:1.1fr 1fr;gap:3rem;align-items:start}
+.cd{display:flex;gap:1.2rem;margin:1rem 0 1.6rem}.cd div{background:var(--surf);border:1px solid var(--a);border-radius:1.4rem;padding:1rem 1.8rem;text-align:center;min-width:11rem;box-shadow:0 0 2.4rem -1rem var(--a)}
+.cd b{display:block;font-size:5.4rem;line-height:1.1;color:var(--a)}.cd span{font-size:1.1rem;color:var(--mut);text-transform:uppercase;letter-spacing:.2rem}
+.steps{list-style:none;padding:0;display:grid;gap:1rem}.steps li{background:var(--surf);border:1px solid var(--line);border-radius:1.1rem;padding:1rem 1.6rem;font-size:1.5rem;color:var(--mut);display:flex;gap:1.2rem}
+.steps b{color:var(--tx)}.steps i{font-style:normal;color:var(--c)}
+.sample{color:var(--mut);font-size:1.1rem;margin-top:1.2rem}
+address{font-style:normal;font-size:2.2rem;color:var(--mut)}address b{color:var(--tx)}address p{margin-bottom:1.2rem}
+.url{font-size:3rem;color:var(--a);font-weight:600}
+
+footer{position:fixed;left:0;right:0;bottom:0;z-index:5}
+.ticker{overflow:hidden;white-space:nowrap;background:rgba(5,10,28,.85);border-top:1px solid var(--line);padding:.7rem 0;font-size:1.2rem;color:var(--c)}
+#tk{display:inline-block;animation:mq 70s linear infinite}@keyframes mq{to{transform:translateX(-50%)}}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:.7rem 4rem;background:rgba(4,8,23,.9)}
+#dots{display:flex;gap:.7rem}#dots i{width:1rem;height:1rem;border-radius:50%;background:var(--line);transition:.4s}#dots i.on{background:var(--a);width:3rem;border-radius:1rem}
+#label{color:var(--mut);font-size:1.1rem;text-transform:uppercase;letter-spacing:.2rem}
+#prog{height:.35rem;width:0;background:linear-gradient(90deg,var(--a),var(--b),var(--c))}
+@keyframes fill{to{width:100%}}
+#hint{position:fixed;left:50%;bottom:11rem;transform:translateX(-50%);background:var(--surf);border:1px solid var(--line);border-radius:99px;padding:.6rem 1.6rem;font-size:1.1rem;color:var(--mut);transition:1s;z-index:6}
+#hint.gone{opacity:0}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="vignette"></div>
+
+<header>
+  <div class="brand"><span class="hex mono">IEEE</span><div><b>IEEE Student Branch</b><small>RajaRajeswari College of Engineering</small></div></div>
+  <div class="clock mono"><b id="time"></b><small id="date"></small></div>
+</header>
+
+<main id="stage"></main>
+
+<footer>
+  <div class="ticker mono"><div id="tk"></div></div>
+  <div class="nav"><div id="dots"></div><span id="label" class="mono"></span></div>
+  <div id="prog"></div>
+</footer>
+
+<div id="hint" class="mono">F = fullscreen · ← → = change slide · Space = pause</div>
+<script>
+/* ================= SETTINGS & DATA (edit here) ================= */
+const SLIDE_SECONDS = 14;                                   // time per slide
+const HACK_DATE = new Date('2026-12-15T09:00:00+05:30');    // SAMPLE hackathon date
+
+const DEPTS = [
+  ["📡","ECE","Electronics & Communication","Communication, VLSI and signal processing; national conferences and workshops."],
+  ["⚡","EEE","Electrical & Electronics","Power and electrical systems; talks with IEEE PES Bangalore Chapter."],
+  ["💻","CSE","Computer Science","Software, systems and computing; co-organised ICRTCET 2024."],
+  ["🗂️","ISE","Information Science","Hosts the annual tech fests Anokha and Aaviskaar."],
+  ["🤖","AI&ML","Artificial Intelligence & ML","Machine learning and intelligent systems."],
+  ["🎯","MCA","Computer Applications","Postgraduate computing programme."],
+  ["🏗️","Civil","Civil Engineering","Structures and infrastructure; organised Project Expo 2024."]
+];
+const JOURNEY = [
+  ["2006","RRCE founded","Moogambigai Charitable & Educational Trust"],
+  ["2012","ACT-12","National Conference on Advanced Communication Trends"],
+  ["2019","Anokha 2K19","ISE tech fest · plus NCVCS-19 conference"],
+  ["2021","LaTeX Workshop","Three-day ECE workshop for faculty"],
+  ["2022","ICETEMT & Aaviskaar","International conference and ISE tech fest"],
+  ["2023","Quantum Talk","Quantum communication & IEEE membership awareness"],
+  ["2024","ICRTCET & Project Expo","Computing conference · Civil project expo"],
+  ["2025","Technoculturals ’25","RRCE students celebrated a victory"]
+];
+const EVENTS = [
+  ["📚","IEEE Xplore Project Literacy","Workshop","With IEEE Bangalore Chapter","Helps students research with IEEE Xplore."],
+  ["⚛️","Quantum Communications & Computing","Technical Talk","2 May 2023","Entanglement, cryptography and IEEE membership."],
+  ["⚡","Wide Area Measurement Systems","Technical Talk","IEEE PES Bangalore Chapter","Expert talk on power-system monitoring."],
+  ["🔎","FDP: E-Resources for Research","Seminar","IEEE-sponsored","Effective e-resource retrieval strategies."],
+  ["🎪","Aaviskaar 2022","Tech Fest","28 June 2022 · ISE","Annual tech fest of the ISE department."],
+  ["🎓","ICRTCET 2024","Conference","25–26 July 2024","Recent trends in computational engineering."]
+];
+const PROJECTS = [
+  ["📡","Smart Campus Monitor","IoT nodes track energy and air quality.","ESP32 · MQTT · Chart.js"],
+  ["👁️","Vision Attendance","Face-recognition attendance system.","Python · OpenCV · Flask"],
+  ["🦾","Line-Follower Rover","PID robot that follows tracks.","Arduino · IR sensors"],
+  ["☀️","Solar Tracker","Dual-axis panel follows the sun.","LDR · Servo · Embedded C"],
+  ["🛡️","Secure Chat Lab","Encrypted chat for cryptography learning.","JavaScript · WebCrypto"]
+];
+
+/* ================= SCENES ================= */
+const SCENES = [
+ {k:"Welcome", h:()=>`
+  <p class="tag mono a">// Welcome to RajaRajeswari College of Engineering</p>
+  <h1 class="a">Where Ideas Connect.<br><span>Innovation Begins.</span></h1>
+  <p class="lead a">The IEEE Student Branch of RRCE, Bengaluru: events, hackathons, student innovation and a community that builds technology for humanity.</p>
+  <div class="chips a"><span>Events</span><span>Hackathons</span><span>Innovation</span><span>Community</span></div>`},
+ {k:"About RRCE", h:()=>`
+  <p class="tag mono a">01 / the college</p><h2 class="a">About <span>RRCE</span></h2>
+  <div class="grid g4">
+   <div class="card a"><p>Established</p><div class="big mono" data-n="2006">0</div><p>Moogambigai Charitable &amp; Educational Trust</p></div>
+   <div class="card a"><p>Status</p><div class="big">Autonomous</div><p>Affiliated to VTU, Belagavi</p></div>
+   <div class="card a"><p>Quality</p><div class="big">ISO 9001</div><p>2015 certified institution</p></div>
+   <div class="card a"><p>Approved by</p><div class="big">AICTE</div><p>UGC &amp; Govt. of Karnataka</p></div>
+  </div>
+  <p class="lead a" style="margin-top:2rem">Campus: Ramohalli Cross, Kumbalgodu, Mysore Road, Bengaluru – 560074</p>`},
+ {k:"Departments", h:()=>`
+  <p class="tag mono a">02 / departments</p><h2 class="a">Seven Departments, <span>One Campus</span></h2>
+  <div class="grid g4 cyc">${DEPTS.map(d=>`<div class="card a"><div class="ic">${d[0]}</div><h3>${d[1]}</h3><p>${d[2]}</p><div class="more">${d[3]}</div></div>`).join('')}
+   <div class="card a"><div class="ic">🚀</div><h3>IEEE</h3><p>Open to all departments</p><div class="more">Join the student branch and grow your network.</div></div></div>`},
+ {k:"Our Journey", h:()=>`
+  <p class="tag mono a">03 / journey</p><h2 class="a">Milestones <span>&amp; Moments</span></h2>
+  <div class="grid g4 cyc">${JOURNEY.map(j=>`<div class="card a"><div class="yr mono">${j[0]}</div><h3>${j[1]}</h3><p>${j[2]}</p></div>`).join('')}</div>`},
+ {k:"Events", h:()=>`
+  <p class="tag mono a">04 / events</p><h2 class="a">Talks, Workshops <span>&amp; Tech Fests</span></h2>
+  <div class="grid g3 cyc">${EVENTS.map(e=>`<div class="card a"><div class="ic">${e[0]}</div><p><span class="pill">${e[2]}</span><span class="pill alt">Past</span></p><h3>${e[1]}</h3><p>${e[3]}</p><div class="more">${e[4]}</div></div>`).join('')}</div>`},
+ {k:"Hackathon", h:()=>`
+  <p class="tag mono a">05 / hackathon</p><h2 class="a">RRCE <span>Innovation Hackathon</span></h2>
+  <div class="two"><div>
+    <p class="lead a" style="font-size:1.7rem">Starts in</p><div class="cd mono a" id="cd"></div>
+    <div class="chips a" style="margin-top:0"><span>🤖 AI &amp; ML</span><span>📡 IoT</span><span>🌱 Sustainability</span><span>🌐 Web &amp; Cloud</span></div>
+    <p class="sample mono a">Sample date and details, so update before display.</p></div>
+   <ol class="steps cyc">${["Register|Form a team of 2–4","Kick-off|Problem statements released","Build|24 hours of prototyping","Pitch|Present to the jury","Win|Results and prizes"].map((s,i)=>`<li class="a"><i class="mono">0${i+1}</i><span><b>${s.split('|')[0]}</b> — ${s.split('|')[1]}</span></li>`).join('')}</ol></div>`},
+ {k:"Innovation", h:()=>`
+  <p class="tag mono a">06 / innovation showcase</p><h2 class="a">Student <span>Projects</span></h2>
+  <div class="grid g5 cyc">${PROJECTS.map(p=>`<div class="card a"><div class="ic">${p[0]}</div><h3>${p[1]}</h3><p>${p[2]}</p><div class="more mono">${p[3]}</div></div>`).join('')}</div>
+  <p class="sample mono a">Sample projects, so replace with real student work.</p>`},
+ {k:"IEEE", h:()=>`
+  <p class="tag mono a">07 / ieee community</p><h2 class="a">Part of a <span>Global Network</span></h2>
+  <div class="grid g3">
+   <div class="card a"><div class="big mono"><span data-n="400">0</span>K+</div><p>IEEE members worldwide</p></div>
+   <div class="card a"><div class="big mono"><span data-n="160">0</span>+</div><p>countries with IEEE members</p></div>
+   <div class="card a"><div class="big mono"><span data-n="1963">0</span></div><p>year IEEE was formed</p></div></div>
+  <p class="lead a" style="margin-top:2rem">Working with the IEEE Bangalore Chapter and IEEE PES Bangalore Chapter on literacy programs, expert talks and faculty programs.</p>`},
+ {k:"Join & Contact", h:()=>`
+  <p class="tag mono a">08 / join us</p><h2 class="a">Be part of the <span>next big idea</span></h2>
+  <div class="two"><address class="a"><p><b>RajaRajeswari College of Engineering</b><br>Ramohalli Cross, Kumbalgodu, Mysore Road,<br>Bengaluru – 560074</p><p class="mono">☎ +91-80-28437124 / 28437375</p><p class="url mono">www.rrce.org</p></address>
+  <div class="card a"><h3>How to join</h3><p style="font-size:1.6rem">Meet the IEEE RRCE team, ask about student membership, or register your team for the hackathon.</p><p class="sample mono">Add QR code / social handles here.</p></div></div>`}
+];
+
+/* ================= ENGINE ================= */
+const $=s=>document.querySelector(s),stage=$('#stage'),prog=$('#prog'),dots=$('#dots'),label=$('#label');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+SCENES.forEach((s,i)=>{const d=document.createElement('section');d.className='scene';d.innerHTML=s.h();d.querySelectorAll('.a').forEach((e,j)=>e.style.setProperty('--i',j));stage.appendChild(d);dots.appendChild(document.createElement('i'))});
+const els=[...stage.children];let cur=-1,timer,cyc,paused=false;
+
+function count(el){const n=+el.dataset.n;let v=0;const id=setInterval(()=>{v=Math.min(n,v+n/50);el.textContent=Math.round(v);if(v>=n)clearInterval(id)},30)}
+function go(n){
+  n=(n+els.length)%els.length;clearTimeout(timer);clearInterval(cyc);
+  els.forEach((e,i)=>e.classList.toggle('on',i===n));[...dots.children].forEach((d,i)=>d.classList.toggle('on',i===n));
+  cur=n;label.textContent=`${String(n+1).padStart(2,'0')} / ${String(els.length).padStart(2,'0')} · ${SCENES[n].k}`;
+  const sc=els[n];sc.querySelectorAll('[data-n]').forEach(count);
+  const items=[...sc.querySelectorAll('.cyc>*')];items.forEach(x=>x.classList.remove('hl'));
+  if(items.length){let k=0;const step=Math.max(1400,SLIDE_SECONDS*1000*.85/items.length);
+    const hl=()=>{items.forEach((x,i)=>x.classList.toggle('hl',i===k));k=(k+1)%items.length};setTimeout(hl,1500);cyc=setInterval(hl,step)}
+  prog.style.animation='none';prog.offsetHeight;if(!reduce)prog.style.animation=`fill ${SLIDE_SECONDS}s linear forwards`;
+  timer=setTimeout(()=>paused?go(cur):go(cur+1),SLIDE_SECONDS*1000);
+}
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);
+  else if(e.key===' '){paused=!paused;prog.style.animationPlayState=paused?'paused':'running';e.preventDefault()}
+  else if(e.key.toLowerCase()==='f'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+});
+document.addEventListener('click',()=>go(cur+1));
+
+/* clock */
+function clock(){const d=new Date();$('#time').textContent=d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});$('#date').textContent=d.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+clock();setInterval(clock,1000);
+
+/* hackathon countdown */
+setInterval(()=>{const c=$('#cd');if(!c)return;let d=Math.max(0,HACK_DATE-Date.now());
+  c.innerHTML=[['Days',864e5],['Hours',36e5],['Min',6e4],['Sec',1e3]].map(([n,v])=>{const x=Math.floor(d/v);d-=x*v;return`<div><b>${String(x).padStart(2,'0')}</b><span>${n}</span></div>`}).join('')},1000);
+
+/* ticker */
+const tk=EVENTS.map(e=>`${e[0]} ${e[1]} — ${e[3]}`).join('   ◆   ');$('#tk').textContent=tk+'   ◆   '+tk+'   ◆   ';
+
+/* hide cursor + hint when idle */
+let idle;function wake(){document.body.classList.remove('idle');clearTimeout(idle);idle=setTimeout(()=>document.body.classList.add('idle'),3000)}
+addEventListener('pointermove',wake);wake();setTimeout(()=>$('#hint').classList.add('gone'),9000);
+
+/* keep screen awake (if supported) */
+try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}
+
+/* animated background network */
+const cv=$('#bg'),cx=cv.getContext('2d');let w,h,P=[];
+function size(){w=cv.width=innerWidth;h=cv.height=innerHeight;P=Array.from({length:Math.min(110,w/16|0)},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.45,vy:(Math.random()-.5)*.45,r:Math.random()*2+1}))}
+addEventListener('resize',size);size();
+(function frame(){cx.clearRect(0,0,w,h);const t=Date.now()/1000;
+  P.forEach((p,i)=>{if(!reduce){p.x+=p.vx;p.y+=p.vy}if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;
+    cx.fillStyle=(i%9===0)?'#00e5a8':'#00b4ff';cx.globalAlpha=.55+.4*Math.sin(t*2+i);cx.beginPath();cx.arc(p.x,p.y,p.r,0,7);cx.fill();
+    for(let j=i+1;j<P.length;j++){const q=P[j],d=Math.hypot(p.x-q.x,p.y-q.y);if(d<150){cx.globalAlpha=(1-d/150)*.4;cx.strokeStyle='#00b4ff';cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(q.x,p.y);cx.lineTo(q.x,q.y);cx.stroke()}}});
+  cx.globalAlpha=1;requestAnimationFrame(frame)})();
+
+go(0);
+</script>
+</body>
+</html>
